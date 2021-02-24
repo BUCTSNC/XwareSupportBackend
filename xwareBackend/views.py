@@ -14,6 +14,7 @@ appSecret = access.appConfig['appSecret']
 
 def hello(request):
     res = {"code": 200, "msg": "hello"}
+    print(request.session.get("openId"))
     return HttpResponse(json.dumps(res), content_type="text/json")
 
 
@@ -21,7 +22,7 @@ class login(APIView):
     def get(self,request):
         if "jscode" not in request.query_params:
             return myResponse.Error("无jscode")
-        jscode = request.query_params['request.query_params']
+        jscode = request.query_params['jscode']
         openId = ""
         try:
             res = requests.get("https://api.weixin.qq.com/sns/jscode2session",params={
@@ -45,7 +46,7 @@ def userHandle(openId):
     userInfo = {"isNew":False,"info":None}
     if userList.count() == 0:
         thisUser = user(
-            openId=openId
+            openid=openId
         )
         thisUser.save()
         userInfo['isnew'] = True

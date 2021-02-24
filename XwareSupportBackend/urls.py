@@ -20,5 +20,6 @@ import XwareSupportBackend.accessTokenCenter as access
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("hello",xwareBackend.views.hello),
+    path("login",xwareBackend.views.login.as_view()),
 ]
 print(access.appConfig)
