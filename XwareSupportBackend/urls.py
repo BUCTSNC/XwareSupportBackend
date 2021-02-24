@@ -16,7 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 import xwareBackend.views
+import XwareSupportBackend.accessTokenCenter as access
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("hello",xwareBackend.views.hello),
 ]
+print(access.appConfig)
