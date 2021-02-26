@@ -27,7 +27,6 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('Date', models.DateField()),
                 ('Start', models.DateTimeField()),
-                ('Slot', models.DurationField()),
                 ('AllowNumber', models.IntegerField()),
             ],
         ),
