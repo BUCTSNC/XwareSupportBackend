@@ -20,7 +20,6 @@ import XwareSupportBackend.accessTokenCenter as access
 from XwareSupportBackend import ownerInit
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("hello",xwareBackend.views.hello),
     path("login",xwareBackend.views.login.as_view()),
     path("setpersonalInfo",xwareBackend.views.setUserInfo.as_view()),
     path("problems",xwareBackend.views.ProblemType.as_view()),
@@ -28,6 +27,9 @@ urlpatterns = [
     path("Appointment",xwareBackend.views.AppointmentManager.as_view()),
     path("myAppointment",xwareBackend.views.myAppointment.as_view()),
     path("bindFunctionary",xwareBackend.views.bindFunctionary.as_view()),
+    path("startEvent",xwareBackend.views.startEvent.as_view()),
+    path("myHandleEvent",xwareBackend.views.myHandleEvent.as_view()),
+    path("Event", xwareBackend.views.Event.as_view()),
 ]
 #print(access.appConfig)
 ownerInit.init()

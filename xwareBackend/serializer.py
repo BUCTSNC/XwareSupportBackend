@@ -68,6 +68,7 @@ class shortAppointmentSerializers(ModelSerializer):
     date = serializers.SerializerMethodField()
     slot = serializers.SerializerMethodField()
     applyTime = serializers.SerializerMethodField()
+
     def get_date(self, data):
         time = TimeSlot.objects.filter(id=data.slot.id)
         return time[0].Date.strftime("%Y-%m-%d") + " " + "({})".format(numberToWeekDay(time[0].Date.strftime("%w")))
@@ -93,6 +94,44 @@ class AppointmentDetailSerializers(ModelSerializer):
 
     def get_user(self, data):
         return data.sourseInfo
+
+
+class shortEventSerializers(ModelSerializer):
+    class Meta:
+        model = event
+        fields = ['id', 'status', 'appointment', 'user', "uuid", "handletime"]
+
+    appointment = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+    uuid = serializers.SerializerMethodField()
+    handletime = serializers.SerializerMethodField()
+
+    def get_appointment(self, data):
+        return shortAppointmentSerializers(data.appointment).data
+
+    def get_user(self, data):
+        return data.appointment.sourseInfo
+
+    def get_uuid(self, data):
+        return data.appointment.uuid
+
+    def get_handletime(self, data):
+        return data.handleTime.strftime("%Y-%m-%d %H:%M:%S")
+
+
+class EventSerializers(ModelSerializer):
+    class Meta:
+        model = event
+        exclude = ['appointment', 'handler']
+
+    Appointment = serializers.SerializerMethodField()
+    Handler = serializers.SerializerMethodField()
+
+    def get_Appointment(self, data):
+        return AppointmentDetailSerializers(data.appointment).data
+
+    def get_Handler(self, data):
+        return FunctionarySerializers(data.handler).data
 
 
 def numberToWeekDay(num):

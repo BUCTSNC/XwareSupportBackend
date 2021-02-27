@@ -6,21 +6,23 @@ from xwareBackend import myResponse
 from xwareBackend.models import *
 from xwareBackend.serializer import UserSerializers, FunctionarySerializers, \
     mainProblemSerializers, timeSlotSerializers, shortAppointmentSerializers, \
-    AppointmentDetailSerializers
+    AppointmentDetailSerializers, shortEventSerializers, EventSerializers
 from rest_framework.views import APIView
 import requests
 import uuid
 import hashlib
+from rest_framework.pagination import PageNumberPagination
+from xwareBackend.AliyunImage import upload
+
+
+class SelfdefinedPage(PageNumberPagination):
+    page_size_query_param = "size"
+    page_query_param = "page"
+
 
 # Create your views here.
 appId = access.appConfig['appId']
 appSecret = access.appConfig['appSecret']
-
-
-def hello(request):
-    res = {"code": 200, "msg": "hello"}
-    print(request.session.get("openId"))
-    return HttpResponse(json.dumps(res), content_type="text/json")
 
 
 class login(APIView):
@@ -114,9 +116,9 @@ class AppointmentManager(APIView):
             if exist.count() != 0:
                 return myResponse.AuthError("该日您已有预约")
             sourseInfo = {
-                "realName":thisUser.realName,
-                "phone":thisUser.phone,
-                "NO":thisUser.NO,
+                "realName": thisUser.realName,
+                "phone": thisUser.phone,
+                "NO": thisUser.NO,
             }
             newAppointment = Appointment(
                 problemType=problemType,
@@ -171,8 +173,103 @@ class bindFunctionary(APIView):
         return myResponse.OK(data={"userInfo": userHandle(request.session.get("openId"))})
 
 
+class startEvent(APIView):
+    def get(self, request):
+        if not request.session.has_key("openId") or request.session.get("openId") == "":
+            return myResponse.AuthError("您未登录")
+        try:
+            thisFunctionary = functionary.objects.get(user__openid=request.session.get("openId"))
+        except:
+            return myResponse.AuthError("您不是工作人员")
+        try:
+            UUID = request.query_params['uuid']
+            thisAppointment = Appointment.objects.get(uuid=UUID)
+        except:
+            return myResponse.AuthError("预约获取错误")
+        try:
+            thisEvent = event(appointment=thisAppointment, handler=thisFunctionary, status="正在维修")
+            thisEvent.save()
+            thisAppointment.status = 3
+            thisAppointment.save()
+        except:
+            return myResponse.Error("后端异常")
+        return myResponse.OK("绑定成功", data={"eid": thisEvent.id})
+
+
+class myHandleEvent(APIView):
+    def get(self, request):
+        if not request.session.has_key("openId") or request.session.get("openId") == "":
+            return myResponse.AuthError("您未登录")
+        try:
+            thisFunctionary = functionary.objects.get(user__openid=request.session.get("openId"))
+        except:
+            return myResponse.AuthError("您不是工作人员")
+        allMyEvent = event.objects.filter(handler=thisFunctionary).order_by("-id")
+        pg = SelfdefinedPage()
+        pgr = pg.paginate_queryset(
+            queryset=allMyEvent, request=request, view=self)
+        return myResponse.OK(data=shortEventSerializers(pgr, many=True).data)
+
+
+class Event(APIView):
+    def get(self, request):
+        if not request.session.has_key("openId") or request.session.get("openId") == "":
+            return myResponse.AuthError("您未登录")
+        try:
+            eid = request.query_params['eid']
+            thisEvent = event.objects.get(id=int(eid))
+        except:
+            return myResponse.Error("后端异常")
+        if thisEvent.handler.user.openid == request.session.get("openId"):
+            return myResponse.OK(data=EventSerializers(thisEvent).data)
+        elif thisEvent.appointment.user.openid == request.session.get("openId"):
+            return myResponse.OK(data=EventSerializers(thisEvent).data)
+        else:
+            return myResponse.AuthError("您无权限查看该事件")
+
+    def post(self, request):
+        if not request.session.has_key("openId") or request.session.get("openId") == "":
+            return myResponse.AuthError("您未登录")
+        try:
+            eid = request.data['eid']
+            thisEvent = event.objects.get(id=int(eid))
+        except:
+            return myResponse.Error("后端异常")
+        if thisEvent.handler.user.openid != request.session.get("openId"):
+            return myResponse.AuthError("您无权修改该事件")
+        try:
+            detectProblemType = request.data['detectProblemType']
+            detectInfo = request.data['detectInfo']
+            handleWay = request.data['handleWay']
+            finalStatus = request.data['finalHandle']
+            thisEvent.detectInfo = detectInfo
+            thisEvent.handlerWay = handleWay
+            thisEvent.finalStatus = finalStatus
+            thisEvent.detectProblemType = detectProblemType
+            thisEvent.save()
+        except:
+            return myResponse.Error("后端异常")
+        return myResponse.OK(data=EventSerializers(thisEvent).data)
+
+
+
 def passwordSalt(sourcePassword):
     salt = hashlib.md5(sourcePassword.encode("utf-8")).hexdigest()
     saltPassword = salt + sourcePassword
     finalPassword = hashlib.sha256(saltPassword.encode("utf-8")).hexdigest()
     return finalPassword
+
+
+class imageUpload(APIView):
+    def put(self, request):
+        if not request.session.has_key("openId") or request.session.get("openId") == "":
+            return myResponse.AuthError("您未登录")
+        try:
+            thisFunctionary = functionary.objects.get(user__openid=request.session.get("openId"))
+        except:
+            return myResponse.AuthError("您不是工作人员")
+        try:
+            img = request.FILES.get("img")
+        except:
+            return myResponse.Error("上传异常")
+
