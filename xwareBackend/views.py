@@ -241,11 +241,13 @@ class Event(APIView):
             detectProblemType = request.data['detectProblemType']
             detectInfo = request.data['detectInfo']
             handleWay = request.data['handleWay']
-            finalStatus = request.data['finalHandle']
+            finalStatus = request.data['finalStatus']
+            status = request.data['status']
             thisEvent.detectInfo = detectInfo
             thisEvent.handlerWay = handleWay
             thisEvent.finalStatus = finalStatus
             thisEvent.detectProblemType = detectProblemType
+            thisEvent.status = status
             thisEvent.save()
         except:
             return myResponse.Error("后端异常")
