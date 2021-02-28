@@ -10,12 +10,14 @@ class UserSerializers(ModelSerializer):
         fields = "__all__"
 
     functionaryInfo = serializers.SerializerMethodField()
-
+    back = serializers.SerializerMethodField()
     def get_functionaryInfo(self, data):
         if functionary.objects.filter(user_id=data.id).count() == 0:
             return False
         else:
             return FunctionarySerializers(functionary.objects.filter(user_id=data.id)[0], many=False).data
+    def get_back(self,data):
+        return False
 
 
 class FunctionarySerializers(ModelSerializer):
