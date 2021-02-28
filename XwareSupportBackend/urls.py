@@ -30,6 +30,7 @@ urlpatterns = [
     path("startEvent",xwareBackend.views.startEvent.as_view()),
     path("myHandleEvent",xwareBackend.views.myHandleEvent.as_view()),
     path("Event", xwareBackend.views.Event.as_view()),
+    path("image", xwareBackend.views.image.as_view())
 ]
 #print(access.appConfig)
 ownerInit.init()

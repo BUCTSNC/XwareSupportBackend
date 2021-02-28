@@ -262,8 +262,8 @@ def passwordSalt(sourcePassword):
     return finalPassword
 
 
-class imageUpload(APIView):
-    def put(self, request):
+class image(APIView):
+    def post(self, request):
         if not request.session.has_key("openId") or request.session.get("openId") == "":
             return myResponse.AuthError("您未登录")
         try:
@@ -272,6 +272,22 @@ class imageUpload(APIView):
             return myResponse.AuthError("您不是工作人员")
         try:
             img = request.FILES.get("img")
+            eid = request.data['eid']
+            type = request.data['type']
         except:
             return myResponse.Error("上传异常")
+        try:
+            res = upload(img.file, img.name)
+            if res == 200:
+                thisImage = eventImage(
+                    event=event.objects.get(id=int(eid)),
+                    type=type,
+                    url="https://xwareimage.oss-cn-beijing.aliyuncs.com/"+img.name
+                )
+                thisImage.save()
+            else:
+                return myResponse.Error("后端异常")
+        except:
+            return myResponse.Error("后端异常")
+        return myResponse.OK(data=thisImage.url)
 

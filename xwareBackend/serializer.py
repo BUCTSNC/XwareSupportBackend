@@ -126,6 +126,7 @@ class EventSerializers(ModelSerializer):
 
     Appointment = serializers.SerializerMethodField()
     Handler = serializers.SerializerMethodField()
+    attachImage = serializers.SerializerMethodField()
 
     def get_Appointment(self, data):
         return AppointmentDetailSerializers(data.appointment).data
@@ -133,6 +134,12 @@ class EventSerializers(ModelSerializer):
     def get_Handler(self, data):
         return FunctionarySerializers(data.handler).data
 
+    def get_attachImage(self, data):
+        return imageSerializers(eventImage.objects.filter(event_id=data.id,type="attach"),many=True).data
+class imageSerializers(ModelSerializer):
+    class Meta:
+        model = eventImage
+        fields = "__all__"
 
 def numberToWeekDay(num):
     dic = {
