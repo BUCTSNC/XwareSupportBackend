@@ -84,10 +84,20 @@ class shortAppointmentSerializers(ModelSerializer):
 class AppointmentDetailSerializers(ModelSerializer):
     class Meta:
         model = Appointment
-        fields = ['uuid', 'describe', "meta", "user"]
-
+        fields = ['uuid', 'describe', "meta", "user", "eidWithHandle"]
     meta = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
+    eidWithHandle = serializers.SerializerMethodField()
+
+    def get_eidWithHandle(self, data):
+        l = []
+        alle = event.objects.filter(appointment_id=data.id)
+        for e in alle:
+            l.append({
+                "id":e.id,
+                "handlerName":e.handler.realName
+            })
+        return l
 
     def get_meta(self, data):
         return shortAppointmentSerializers(data).data
@@ -135,11 +145,14 @@ class EventSerializers(ModelSerializer):
         return FunctionarySerializers(data.handler).data
 
     def get_attachImage(self, data):
-        return imageSerializers(eventImage.objects.filter(event_id=data.id,type="attach"),many=True).data
+        return imageSerializers(eventImage.objects.filter(event_id=data.id, type="attach"), many=True).data
+
+
 class imageSerializers(ModelSerializer):
     class Meta:
         model = eventImage
         fields = "__all__"
+
 
 def numberToWeekDay(num):
     dic = {
@@ -149,6 +162,6 @@ def numberToWeekDay(num):
         "4": "星期四",
         "5": "星期五",
         "6": "星期六",
-        "7": "星期日",
+        "0": "星期日",
     }
     return dic[num]

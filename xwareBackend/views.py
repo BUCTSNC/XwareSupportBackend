@@ -13,6 +13,7 @@ import uuid
 import hashlib
 from rest_framework.pagination import PageNumberPagination
 from xwareBackend.AliyunImage import upload
+import datetime
 
 
 class SelfdefinedPage(PageNumberPagination):
@@ -94,8 +95,14 @@ class setUserInfo(APIView):
 
 class TimeslotList(APIView):
     def get(self, request):
-        timeslots = TimeSlot.objects.all()
-        return myResponse.OK(data=timeSlotSerializers(timeslots, many=True).data)
+        now = datetime.datetime.now()
+        timeslots = TimeSlot.objects.filter(End__gte=now)
+        ret = []
+        for slot in timeslots:
+            nowAppointCount = slot.appointment_set.count()
+            if slot.AllowNumber > nowAppointCount:
+                ret.append(slot)
+        return myResponse.OK(data=timeSlotSerializers(ret, many=True).data)
 
 
 class AppointmentManager(APIView):
@@ -254,7 +261,6 @@ class Event(APIView):
         return myResponse.OK(data=EventSerializers(thisEvent).data)
 
 
-
 def passwordSalt(sourcePassword):
     salt = hashlib.md5(sourcePassword.encode("utf-8")).hexdigest()
     saltPassword = salt + sourcePassword
@@ -282,7 +288,7 @@ class image(APIView):
                 thisImage = eventImage(
                     event=event.objects.get(id=int(eid)),
                     type=type,
-                    url="https://xwareimage.oss-cn-beijing.aliyuncs.com/"+img.name
+                    url="https://xwareimage.oss-cn-beijing.aliyuncs.com/" + img.name
                 )
                 thisImage.save()
             else:
@@ -290,4 +296,3 @@ class image(APIView):
         except:
             return myResponse.Error("后端异常")
         return myResponse.OK(data=thisImage.url)
-
