@@ -194,6 +194,8 @@ class startEvent(APIView):
         except:
             return myResponse.AuthError("预约获取错误")
         try:
+            if thisAppointment.status != 2 and thisAppointment.status != 1 and thisAppointment.status != 3:
+                return myResponse.AuthError("事件已结束")
             thisEvent = event(appointment=thisAppointment, handler=thisFunctionary, status="正在维修")
             thisEvent.save()
             thisAppointment.status = 3
