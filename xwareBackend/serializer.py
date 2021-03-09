@@ -147,6 +147,7 @@ class EventSerializers(ModelSerializer):
     Appointment = serializers.SerializerMethodField()
     Handler = serializers.SerializerMethodField()
     attachImage = serializers.SerializerMethodField()
+    hdt = serializers.SerializerMethodField()
 
     def get_Appointment(self, data):
         return AppointmentDetailSerializers(data.appointment).data
@@ -156,6 +157,9 @@ class EventSerializers(ModelSerializer):
 
     def get_attachImage(self, data):
         return imageSerializers(eventImage.objects.filter(event_id=data.id, type="attach"), many=True).data
+
+    def get_hdt(self, data):
+        return data.handleTime.strftime("%Y-%m-%d %H:%M:%S")
 
 
 class imageSerializers(ModelSerializer):
