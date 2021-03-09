@@ -11,12 +11,14 @@ class UserSerializers(ModelSerializer):
 
     functionaryInfo = serializers.SerializerMethodField()
     back = serializers.SerializerMethodField()
+
     def get_functionaryInfo(self, data):
         if functionary.objects.filter(user_id=data.id).count() == 0:
             return False
         else:
             return FunctionarySerializers(functionary.objects.filter(user_id=data.id)[0], many=False).data
-    def get_back(self,data):
+
+    def get_back(self, data):
         return False
 
 
@@ -50,16 +52,21 @@ class subProblemSerializers(ModelSerializer):
 class timeSlotSerializers(ModelSerializer):
     class Meta:
         model = TimeSlot
-        fields = ["id", 'date', 'slot']
+        fields = ["id", 'date', 'slot', 'existAndContain']
 
     date = serializers.SerializerMethodField()
     slot = serializers.SerializerMethodField()
+    existAndContain = serializers.SerializerMethodField()
 
     def get_date(self, data):
         return data.Date.strftime("%Y-%m-%d") + " " + "({})".format(numberToWeekDay(data.Date.strftime("%w")))
 
     def get_slot(self, data):
         return str(data.Start.strftime("%H:%M:%S")) + "-" + data.End.strftime("%H:%M:%S")
+
+    def get_existAndContain(self, data):
+        exist = Appointment.objects.filter(slot_id=data.id).count()
+        return str(exist) + " / " + str(data.AllowNumber)
 
 
 class shortAppointmentSerializers(ModelSerializer):
@@ -87,6 +94,7 @@ class AppointmentDetailSerializers(ModelSerializer):
     class Meta:
         model = Appointment
         fields = ['uuid', 'describe', "meta", "user", "eidWithHandle"]
+
     meta = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     eidWithHandle = serializers.SerializerMethodField()
@@ -96,8 +104,8 @@ class AppointmentDetailSerializers(ModelSerializer):
         alle = event.objects.filter(appointment_id=data.id)
         for e in alle:
             l.append({
-                "id":e.id,
-                "handlerName":e.handler.realName
+                "id": e.id,
+                "handlerName": e.handler.realName
             })
         return l
 

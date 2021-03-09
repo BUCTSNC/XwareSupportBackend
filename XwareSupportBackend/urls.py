@@ -14,12 +14,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 import xwareBackend.views
 import XwareSupportBackend.accessTokenCenter as access
 from XwareSupportBackend import ownerInit
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("manageAPI/", include("manageAPI.urls")),
     path("login",xwareBackend.views.login.as_view()),
     path("setpersonalInfo",xwareBackend.views.setUserInfo.as_view()),
     path("problems",xwareBackend.views.ProblemType.as_view()),
@@ -30,7 +31,7 @@ urlpatterns = [
     path("startEvent",xwareBackend.views.startEvent.as_view()),
     path("myHandleEvent",xwareBackend.views.myHandleEvent.as_view()),
     path("Event", xwareBackend.views.Event.as_view()),
-    path("image", xwareBackend.views.image.as_view())
+    path("image", xwareBackend.views.image.as_view()),
 ]
 #print(access.appConfig)
 ownerInit.init()
