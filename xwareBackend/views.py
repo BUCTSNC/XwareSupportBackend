@@ -256,6 +256,9 @@ class Event(APIView):
             thisEvent.detectProblemType = detectProblemType
             thisEvent.status = status
             thisEvent.save()
+            if status == "处理完成":
+                thisEvent.appointment.status = 4
+                thisEvent.appointment.save()
         except:
             return myResponse.Error("后端异常")
         return myResponse.OK(data=EventSerializers(thisEvent).data)
